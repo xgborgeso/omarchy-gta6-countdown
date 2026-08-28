@@ -123,9 +123,10 @@ Item {
   // predictable path, so any same-UID process could swap it for a symlink to
   // /dev/zero and feed that into this long-lived process. atomicWrites guards
   // the write; nothing in QML guards the read.
+  // Resolved from where the shell loaded this component, with no setting able
+  // to redirect it: a settings-controlled path here would be a configuration
+  // value that becomes an executed command.
   function helperScript() {
-    var override = String(setting("helperPath", "") || "").trim()
-    if (override) return override
     var resolved = toLocalFile(Qt.resolvedUrl("helper/state.py"))
     if (resolved.charAt(0) === "/") return resolved
     return toLocalFile(Qt.resolvedUrl(".")) + "/helper/state.py"
@@ -252,8 +253,6 @@ Item {
   function applySettings() {
     if (settingsApplied) return
     settingsApplied = true
-    // Only now is `helperPath` known, and the stamp has to be read after that
-    // or an overridden helper would be ignored on the one run that matters.
     readStamp()
     refresh()
   }
