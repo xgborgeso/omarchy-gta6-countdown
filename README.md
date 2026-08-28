@@ -153,6 +153,26 @@ if you would rather it stayed.
 omarchy plugin remove io.github.xgborgeso.gta6-countdown
 ```
 
+## What it touches
+
+Plugins run unsandboxed in the Omarchy shell process, so here is everything
+this one does outside its own window.
+
+| | |
+| --- | --- |
+| Runs | `omarchy-notification-send` for the daily reminder, from `$OMARCHY_PATH` |
+| | `xdg-open` for the official page, only when you click the link or press `o` |
+| | `wl-copy` for the removal command, only when you click copy after release |
+| | `mkdir -p` once, and only if writing the state file failed because its directory did not exist |
+| Writes | `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`, one line of JSON |
+| Reads | Nothing. No `/sys`, no `/proc`, no config beyond its own bar settings |
+| Network | None. The only URL is the one handed to `xdg-open` on a click |
+
+There is no helper, no daemon, no installer, no remote build, and no elevated
+privilege. Every value that reaches a label or a notification goes through
+`Model.safeText`, and every text sink is pinned to `Text.PlainText`, which
+`tests/qml.test.py` enforces.
+
 ## Controls
 
 Left click opens the panel, middle click opens the official page.
