@@ -9,7 +9,7 @@ no network, and nothing to read from the system.
 
 <p align="center">
   <img src="preview.png" width="400"
-       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 33m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
+       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 26m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
 ## Features
@@ -17,7 +17,7 @@ no network, and nothing to read from the system.
 - One icon on the bar, the same width as every other chip. The reading lives in
   the tooltip and the panel rather than a string that grows and shrinks and
   shoves its neighbours sideways once a minute
-- One line of exact time in the panel — `82d 09h 33m`, ticking every minute.
+- One line of exact time in the panel — `82d 09h 26m`, ticking every minute.
   Switch it for the plain sleeps count with `panelFormat`
 - Pre-load as well as release, since pre-load opens a week ahead and is the date
   you actually have to act on
@@ -75,27 +75,33 @@ One notification per local day, on the first tick at or after `notifyHour`.
 Booting at 14:00 fires immediately; a machine left running overnight fires at
 `notifyHour` rather than at midnight.
 
-The toast is headed `Grand Theft Auto VI - Countdown`, the same words the panel
-uses, over a body of `83 days · Getting warm` — the count, then a line
-drawn from the current tier. The line comes from a bag rather than at random, so
-every phrase in the tier appears once before any repeats and no two mornings
-running say the same thing. On a milestone day the headline is the milestone
-instead, and the day count still opens the body.
+Every toast is headed `Grand Theft Auto VI - Countdown`, the same words the
+panel uses and the same on every day, so it is recognisable at a glance. The
+body is always two parts: where the countdown stands, then a line from the
+current tier.
+
+    Grand Theft Auto VI - Countdown
+    83 days · A real countdown now
+
+The line comes from a bag rather than at random, so every phrase in the tier
+appears once before any repeats and no two mornings running say the same thing.
 
 State lives in `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`: the last
 day spoken on, so restarting the shell five times before lunch does not produce
 five identical toasts, and the bag, so a reboot does not reset the rotation.
 
-Milestone days carry their own headline instead of the plain one:
+On an ordinary day the body opens with the count. On a milestone it says what
+the milestone is instead:
 
-| Sleeps left | Headline |
+| Sleeps left | Body opens with |
 | --- | --- |
+| any other day | `83 days` |
 | 365 · 300 · 200 · 100 · 50 | `One year to go` … `50 days to go` |
 | 30 | `One month to go` |
 | 14 | `Two weeks to go` |
 | 7 | `Pre-load is open` |
-| 3 · 2 · 1 | `Three days to go` · `Two days to go` · `One more sleep` |
-| 0 | `Grand Theft Auto VI is out` |
+| 3 · 2 · 1 | `Three days to go` · `Two days to go` · `Tomorrow` |
+| 0 | `Out now` |
 
 Release day is announced, and then the countdown has nothing left to say and
 stops speaking.
@@ -105,30 +111,30 @@ stops speaking.
 
 <br>
 
-An ordinary morning: the panel's heading, the count, and a line from the tier.
+An ordinary morning: the count, then a line from the tier.
 
 <img src="docs/notification-daily.png" width="378"
-     alt="A notification headed Grand Theft Auto VI - Countdown, reading 83 days, Getting warm, with a controller glyph">
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading 83 days, A real countdown now, with a controller glyph">
 
 A month out, where the practical nudges live.
 
 <img src="docs/notification-milestone.png" width="378"
-     alt="A notification headed One month to go, reading 30 days, Schedule your vacation">
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading One month to go, Weeks not months">
 
 Pre-load day, one week ahead of launch.
 
 <img src="docs/notification-preload.png" width="378"
-     alt="A notification headed Pre-load is open, reading 7 days, Sleep is optional soon">
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading Pre-load is open, One week One week">
 
 The last two days come through as critical, so they stay on screen.
 
 <img src="docs/notification-tomorrow.png" width="378"
-     alt="A notification headed One more sleep, reading Tomorrow, Clear your calendar">
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading Tomorrow, Clear your calendar">
 
 And then it is done.
 
 <img src="docs/notification-release.png" width="378"
-     alt="A notification headed Grand Theft Auto VI is out, reading November 19, 2026, out now">
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading Out now, Why are you still here">
 
 </details>
 
