@@ -8,8 +8,8 @@ page, and one reminder a day. It is pure date arithmetic — no daemon, no helpe
 no network, and nothing to read from the system.
 
 <p align="center">
-  <img src="preview.png" width="484"
-       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 55m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
+  <img src="preview.png" width="400"
+       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 33m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
 ## Features
@@ -17,7 +17,7 @@ no network, and nothing to read from the system.
 - One icon on the bar, the same width as every other chip. The reading lives in
   the tooltip and the panel rather than a string that grows and shrinks and
   shoves its neighbours sideways once a minute
-- One line of exact time in the panel — `82d 09h 55m`, ticking every minute.
+- One line of exact time in the panel — `82d 09h 33m`, ticking every minute.
   Switch it for the plain sleeps count with `panelFormat`
 - Pre-load as well as release, since pre-load opens a week ahead and is the date
   you actually have to act on
@@ -76,7 +76,7 @@ Booting at 14:00 fires immediately; a machine left running overnight fires at
 `notifyHour` rather than at midnight.
 
 The toast is headed `Grand Theft Auto VI - Countdown`, the same words the panel
-uses, over a body of `83 days · Under three months` — the count, then a line
+uses, over a body of `83 days · Getting warm` — the count, then a line
 drawn from the current tier. The line comes from a bag rather than at random, so
 every phrase in the tier appears once before any repeats and no two mornings
 running say the same thing. On a milestone day the headline is the milestone
@@ -94,11 +94,43 @@ Milestone days carry their own headline instead of the plain one:
 | 30 | `One month to go` |
 | 14 | `Two weeks to go` |
 | 7 | `Pre-load is open` |
-| 3 · 2 · 1 | `Three days to go` · `Two days to go` · `Tomorrow` |
+| 3 · 2 · 1 | `Three days to go` · `Two days to go` · `One more sleep` |
 | 0 | `Grand Theft Auto VI is out` |
 
 Release day is announced, and then the countdown has nothing left to say and
 stops speaking.
+
+<details>
+<summary>See what they look like</summary>
+
+<br>
+
+An ordinary morning: the panel's heading, the count, and a line from the tier.
+
+<img src="docs/notification-daily.png" width="378"
+     alt="A notification headed Grand Theft Auto VI - Countdown, reading 83 days, Getting warm, with a controller glyph">
+
+A month out, where the practical nudges live.
+
+<img src="docs/notification-milestone.png" width="378"
+     alt="A notification headed One month to go, reading 30 days, Schedule your vacation">
+
+Pre-load day, one week ahead of launch.
+
+<img src="docs/notification-preload.png" width="378"
+     alt="A notification headed Pre-load is open, reading 7 days, Sleep is optional soon">
+
+The last two days come through as critical, so they stay on screen.
+
+<img src="docs/notification-tomorrow.png" width="378"
+     alt="A notification headed One more sleep, reading Tomorrow, Clear your calendar">
+
+And then it is done.
+
+<img src="docs/notification-release.png" width="378"
+     alt="A notification headed Grand Theft Auto VI is out, reading November 19, 2026, out now">
+
+</details>
 
 ## After release
 
