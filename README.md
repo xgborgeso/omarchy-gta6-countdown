@@ -23,8 +23,10 @@ no network, and nothing to read from the system.
   you actually have to act on
 - One reminder a day, at an hour you choose, with a milestone line at 100 days,
   50, a month, two weeks, pre-load day, and the last three days
-- A subtitle that escalates as launch approaches, from `Sit tight` at six months
-  out to `This is not a drill` in the final days
+- A line that escalates as launch approaches, from `Sit tight` at six months out
+  to `This is not a drill` in the final days. It changes every time you open the
+  panel and on every daily reminder, drawn from a bag so it never repeats before
+  the tier is exhausted
 - Counts to **local midnight**, because that is how Rockstar gates pre-orders,
   pre-load and launch
 - Packs up after release: a farewell line, the removal command with a copy
@@ -71,9 +73,16 @@ omarchy bar move io.github.xgborgeso.gta6-countdown --section right
 
 One notification per local day, on the first tick at or after `notifyHour`.
 Booting at 14:00 fires immediately; a machine left running overnight fires at
-`notifyHour` rather than at midnight. The last day spoken on is written to
-`$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`, so restarting the shell
-five times before lunch does not produce five identical toasts.
+`notifyHour` rather than at midnight.
+
+The toast reads `83 days · Under three months` — the count, then a line drawn
+from the current tier. It is drawn from a bag rather than at random, so every
+line in the tier appears once before any repeats and no two mornings running
+say the same thing.
+
+State lives in `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`: the last
+day spoken on, so restarting the shell five times before lunch does not produce
+five identical toasts, and the bag, so a reboot does not reset the rotation.
 
 Milestone days carry their own headline instead of the plain one:
 

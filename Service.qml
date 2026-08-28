@@ -110,9 +110,30 @@ Item {
   // times before lunch does not produce five identical toasts. An in-memory
   // map would be correct for a battery, whose state genuinely changes; here
   // the state is the calendar, and the calendar survives a restart.
-  property string lastNotifiedKey: ""
+  // The whole notify state: which local day we last spoke on, and the phrase
+  // bag, so the toast does not repeat a line two mornings running even across a
+  // reboot.
+  property var notifyState: ({ lastKey: "", phrases: null })
   property bool stampLoaded: false
   property bool stampDirRepaired: false
+
+  // Stored as JSON now. A stamp written by an earlier version is a bare date on
+  // the first line, which still has to be honoured or upgrading would produce a
+  // second toast on a day already spoken for.
+  function parseStamp(text) {
+    var raw = String(text || "").trim()
+    if (raw === "") return { lastKey: "", phrases: null }
+    if (raw.charAt(0) === "{") {
+      try {
+        var parsed = JSON.parse(raw)
+        return {
+          lastKey: parsed && parsed.lastKey ? String(parsed.lastKey) : "",
+          phrases: parsed && parsed.phrases ? parsed.phrases : null
+        }
+      } catch (e) {}
+    }
+    return { lastKey: raw.split("\n")[0].trim(), phrases: null }
+  }
 
   readonly property string stateDir: {
     var base = String(Quickshell.env("XDG_STATE_HOME") || "").trim()
@@ -129,7 +150,7 @@ Item {
     if (!settingsApplied || !stampLoaded) return
     if (!active || notifyMode === "off") return
 
-    var plan = Model.notifyPlan(nowMs, { lastKey: lastNotifiedKey }, {
+    var plan = Model.notifyPlan(nowMs, notifyState, {
       target: target.ms,
       date: target.date,
       mode: notifyMode,
@@ -137,8 +158,8 @@ Item {
     })
     if (!plan.due) return
 
-    lastNotifiedKey = plan.state.lastKey
-    stamp.setText(lastNotifiedKey + "\n")
+    notifyState = plan.state
+    stamp.setText(JSON.stringify(plan.state) + "\n")
     sendNotify(plan.due)
   }
 
@@ -168,13 +189,13 @@ Item {
     printErrors: false
 
     onLoaded: {
-      root.lastNotifiedKey = String(stamp.text() || "").split("\n")[0].trim()
+      root.notifyState = root.parseStamp(stamp.text())
       root.stampLoaded = true
       root.maybeNotify()
     }
     onLoadFailed: {
       // No stamp yet: this machine has never been told anything.
-      root.lastNotifiedKey = ""
+      root.notifyState = { lastKey: "", phrases: null }
       root.stampLoaded = true
       root.maybeNotify()
     }
@@ -242,8 +263,8 @@ Item {
     running: false
     command: []
     onExited: function (exitCode) {
-      if (exitCode === 0 && root.lastNotifiedKey !== "") {
-        stamp.setText(root.lastNotifiedKey + "\n")
+      if (exitCode === 0 && root.notifyState && root.notifyState.lastKey !== "") {
+        stamp.setText(JSON.stringify(root.notifyState) + "\n")
       }
     }
   }

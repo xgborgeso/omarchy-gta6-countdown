@@ -280,17 +280,45 @@ function phrasesFor(cd) {
   return PHRASE_TIERS[PHRASE_TIERS.length - 1].phrases
 }
 
-// Picking is kept here so the panel does not have to hold an index across a
-// tier change, where the old index could point past the end of the new list.
-function pickPhrase(cd, previous) {
-  var list = phrasesFor(cd)
-  if (list.length === 0) return ""
-  if (list.length === 1) return list[0]
-  var choice = list[Math.floor(Math.random() * list.length)]
-  if (choice === previous) {
-    choice = list[(list.indexOf(previous) + 1 + Math.floor(Math.random() * (list.length - 1))) % list.length]
+function tierKey(cd) {
+  if (!cd || cd.released) return "released"
+  for (var i = 0; i < PHRASE_TIERS.length; i++) {
+    if (cd.calendarDays >= PHRASE_TIERS[i].minDays) return String(PHRASE_TIERS[i].minDays)
   }
-  return choice
+  return String(PHRASE_TIERS[PHRASE_TIERS.length - 1].minDays)
+}
+
+// Draws from a bag rather than picking at random each time: every phrase in the
+// tier is shown once before any repeats. Plain random would land on the same
+// line twice in five with only five per tier, which is exactly what makes a
+// rotating subtitle feel stale. The bag empties and refills, and a tier change
+// starts a fresh one so a phrase held from six months out cannot suppress a
+// final-days line.
+function nextPhrase(cd, state) {
+  var list = phrasesFor(cd)
+  var key = tierKey(cd)
+  if (list.length === 0) return { phrase: "", state: { tier: key, used: [] } }
+
+  var used = state && state.tier === key && state.used && state.used.length
+    ? state.used.slice()
+    : []
+  var remaining = []
+  for (var i = 0; i < list.length; i++) {
+    if (used.indexOf(list[i]) < 0) remaining.push(list[i])
+  }
+  // Bag empty: refill, but hold back the one just shown so a refill cannot
+  // repeat across the seam.
+  if (remaining.length === 0) {
+    var last = used.length ? used[used.length - 1] : ""
+    used = []
+    for (var j = 0; j < list.length; j++) {
+      if (list[j] !== last || list.length === 1) remaining.push(list[j])
+    }
+  }
+
+  var choice = remaining[Math.floor(Math.random() * remaining.length)]
+  used.push(choice)
+  return { phrase: choice, state: { tier: key, used: used } }
 }
 
 // Whether the panel prints the exact figure under the big number. At eighty
@@ -337,9 +365,14 @@ function notifyHeadline(cd) {
   return "Grand Theft Auto VI"
 }
 
-function notifyBody(cd, dateText) {
+// The daily toast is the once-a-day display, so it carries a phrase too and
+// reads differently each morning. The release date is static and lives in the
+// panel and the tooltip; the count and the line are the parts worth re-reading.
+function notifyBody(cd, dateText, phrase) {
   if (cd.released) return formatDate(dateText) + " · out now"
-  return formatHeadline(cd) + " · " + formatDate(dateText)
+  var line = safeText(phrase)
+  if (line === "") return formatHeadline(cd) + " · " + formatDate(dateText)
+  return formatHeadline(cd) + " · " + line
 }
 
 // One notification per local day, on the first tick at or after `hour`. Booting
@@ -351,7 +384,12 @@ function notifyPlan(nowMs, state, options) {
   var mode = String(opts.mode || "daily")
   var hour = opts.hour
   if (typeof hour !== "number" || !isFinite(hour)) hour = 9
-  var next = { lastKey: state && state.lastKey ? String(state.lastKey) : "" }
+  // Every early return below hands this back, so the phrase bag survives the
+  // many ticks a day where nothing is due.
+  var next = {
+    lastKey: state && state.lastKey ? String(state.lastKey) : "",
+    phrases: state && state.phrases ? state.phrases : null
+  }
   if (mode === "off") return { state: next, due: null }
 
   var cd = countdown(nowMs, opts.target)
@@ -367,11 +405,15 @@ function notifyPlan(nowMs, state, options) {
   }
 
   next.lastKey = key
+  // The phrase bag rides along in the same state the caller already persists,
+  // so the toast does not repeat itself two mornings running.
+  var picked = nextPhrase(cd, state && state.phrases)
+  next.phrases = picked.state
   return {
     state: next,
     due: {
       headline: notifyHeadline(cd),
-      body: notifyBody(cd, opts.date),
+      body: notifyBody(cd, opts.date, picked.phrase),
       urgency: cd.released || cd.calendarDays <= 1 ? "critical" : "normal"
     }
   }
@@ -431,7 +473,8 @@ if (typeof module !== "undefined") {
     PHRASE_TIERS: PHRASE_TIERS,
     RELEASED_PHRASES: RELEASED_PHRASES,
     phrasesFor: phrasesFor,
-    pickPhrase: pickPhrase,
+    tierKey: tierKey,
+    nextPhrase: nextPhrase,
     milestoneFor: milestoneFor,
     notifyHeadline: notifyHeadline,
     notifyBody: notifyBody,

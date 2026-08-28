@@ -31,12 +31,17 @@ Ui.Panel {
   // Chosen when the panel opens rather than bound, so the subtitle holds still
   // while the panel is up instead of resampling on every minute tick.
   property string heroPhrase: ""
+  // The bag the phrase is drawn from, kept across opens so every line in the
+  // tier is seen before any repeats.
+  property var phraseBag: null
   readonly property string heroMeta: lastError !== ""
     ? "Check the release date"
     : heroPhrase
 
   function pickHeroPhrase() {
-    heroPhrase = Model.pickPhrase(root.cd, heroPhrase)
+    var picked = Model.nextPhrase(root.cd, phraseBag)
+    phraseBag = picked.state
+    heroPhrase = picked.phrase
   }
 
   // A finished countdown retires itself rather than sitting on the bar forever.

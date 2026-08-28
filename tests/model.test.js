@@ -389,24 +389,87 @@ check("no phrase is blank, duplicated, or long enough to be clipped", () => {
   assert.strictEqual(new Set(all).size, all.length, "a phrase is repeated")
 })
 
-check("picking never repeats the phrase already on screen", () => {
+check("every phrase in a tier is shown before any repeats", () => {
+  // The point of the bag. Plain random over five phrases repeats within a
+  // couple of draws, which is what makes a rotating line feel stale.
   const cd = { released: false, calendarDays: 60 }
-  let previous = Model.phrasesFor(cd)[0]
-  for (let i = 0; i < 200; i++) {
-    const next = Model.pickPhrase(cd, previous)
-    assert.notStrictEqual(next, previous, "picked the same phrase twice running")
-    assert.ok(Model.phrasesFor(cd).indexOf(next) >= 0, "picked outside the tier")
-    previous = next
+  const list = Model.phrasesFor(cd)
+  let state = null
+  const drawn = []
+  for (let i = 0; i < list.length; i++) {
+    const picked = Model.nextPhrase(cd, state)
+    state = picked.state
+    drawn.push(picked.phrase)
+  }
+  assert.strictEqual(new Set(drawn).size, list.length, "a phrase repeated inside one cycle")
+  assert.deepStrictEqual([...drawn].sort(), [...list].sort(), "the bag covered the tier")
+})
+
+check("a refill never repeats across the seam", () => {
+  const cd = { released: false, calendarDays: 60 }
+  const list = Model.phrasesFor(cd)
+  let state = null
+  let previous = ""
+  for (let i = 0; i < 300; i++) {
+    const picked = Model.nextPhrase(cd, state)
+    state = picked.state
+    assert.notStrictEqual(picked.phrase, previous, "same phrase twice running")
+    assert.ok(list.indexOf(picked.phrase) >= 0, "drew from outside the tier")
+    previous = picked.phrase
   }
 })
 
-check("picking survives a tier change mid-session", () => {
-  // The phrase held from the previous tier is not in the new list, which must
-  // not throw or return undefined.
-  const next = Model.pickPhrase({ released: false, calendarDays: 2 }, "Sit tight")
-  assert.ok(Model.phrasesFor({ released: false, calendarDays: 2 }).indexOf(next) >= 0)
-  const out = Model.pickPhrase({ released: true, calendarDays: 0 }, "Sit tight")
-  assert.ok(Model.RELEASED_PHRASES.indexOf(out) >= 0)
+check("a tier change starts a fresh bag", () => {
+  // A bag half-emptied at six months out must not suppress a final-days line.
+  const far = { released: false, calendarDays: 300 }
+  const near = { released: false, calendarDays: 2 }
+  let state = Model.nextPhrase(far, null).state
+  assert.strictEqual(state.tier, Model.tierKey(far))
+
+  const picked = Model.nextPhrase(near, state)
+  assert.strictEqual(picked.state.tier, Model.tierKey(near), "bag rekeyed to the new tier")
+  assert.ok(Model.phrasesFor(near).indexOf(picked.phrase) >= 0)
+  assert.strictEqual(picked.state.used.length, 1, "and started over")
+
+  const out = Model.nextPhrase({ released: true, daysSince: 0 }, picked.state)
+  assert.ok(Model.RELEASED_PHRASES.indexOf(out.phrase) >= 0)
+})
+
+check("a corrupt or absent bag does not break the draw", () => {
+  const cd = { released: false, calendarDays: 60 }
+  for (const junk of [null, undefined, {}, { tier: "60" }, { tier: "60", used: null },
+                      { tier: "60", used: ["not a real phrase"] }]) {
+    const picked = Model.nextPhrase(cd, junk)
+    assert.ok(Model.phrasesFor(cd).indexOf(picked.phrase) >= 0, "bad state " + JSON.stringify(junk))
+  }
+})
+
+check("the daily toast reads differently each morning", () => {
+  // What the user actually sees: run the real plan day after day and check the
+  // body never repeats two days running.
+  let state = { lastKey: "", phrases: null }
+  const bodies = []
+  for (let d = 0; d < 20; d++) {
+    const when = at(2026, 8, 28, 9, 0) + d * Model.MS_DAY
+    const plan = planAt(when, state)
+    state = plan.state
+    if (plan.due) bodies.push(plan.due.body)
+  }
+  assert.strictEqual(bodies.length, 20, "one a day")
+  for (let i = 1; i < bodies.length; i++) {
+    assert.notStrictEqual(bodies[i], bodies[i - 1], "toast repeated on consecutive days")
+  }
+  // And the count is still in there, which is the part that has to be right.
+  assert.ok(/^\d+ days · /.test(bodies[0]), bodies[0])
+})
+
+check("the phrase bag survives the ticks where nothing is due", () => {
+  const before = planAt(at(2026, 8, 28, 9, 0), { lastKey: "", phrases: null })
+  assert.ok(before.state.phrases, "bag recorded when due")
+  // A later tick the same day is not due, and must hand the bag back intact.
+  const idle = planAt(at(2026, 8, 28, 15, 0), before.state)
+  assert.strictEqual(idle.due, null)
+  assert.deepStrictEqual(idle.state.phrases, before.state.phrases)
 })
 
 /* ------------------------------------------------------------ notification */
@@ -430,7 +493,10 @@ check("it holds until the configured hour, then fires once", () => {
 check("booting mid-afternoon fires immediately", () => {
   const boot = planAt(at(2026, 8, 28, 14, 30), { lastKey: "" })
   assert.ok(boot.due)
-  assert.strictEqual(boot.due.body, "83 days · November 19, 2026")
+  // The count is fixed; the line after it is drawn from the tier's bag.
+  assert.ok(boot.due.body.indexOf("83 days · ") === 0, boot.due.body)
+  const phrase = boot.due.body.slice("83 days · ".length)
+  assert.ok(Model.phrasesFor({ released: false, calendarDays: 83 }).indexOf(phrase) >= 0, phrase)
 })
 
 check("restarting the shell all morning does not re-toast", () => {
@@ -466,7 +532,7 @@ check("milestones mode speaks only on the days that matter", () => {
 check("pre-load day is the one-week milestone", () => {
   const plan = planAt(at(2026, 11, 12, 9, 0), { lastKey: "" })
   assert.strictEqual(plan.due.headline, "Pre-load is open")
-  assert.strictEqual(plan.due.body, "7 days · November 19, 2026")
+  assert.ok(plan.due.body.indexOf("7 days · ") === 0, plan.due.body)
 })
 
 check("the last days escalate", () => {
