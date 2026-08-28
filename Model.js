@@ -269,17 +269,20 @@ var PHRASE_TIERS = [
       "This is not a drill",
       "Clear your calendar",
       "Set an alarm anyway",
-      "Almost tomorrow"
+      // Not "Almost tomorrow": the one-day lead is the word "Tomorrow".
+      "So close now"
     ]
   }
 ]
 
+// None of these restate "Out now", because that is the lead they sit behind in
+// the toast, and the panel's own big line says it too.
 var RELEASED_PHRASES = [
-  "Go",
-  "Out now",
+  "Go get it",
+  "Time to play",
   "Stop reading the bar",
   "Why are you still here",
-  "Nothing left to count"
+  "Enjoy it"
 ]
 
 function phrasesFor(cd) {
@@ -358,9 +361,7 @@ var MILESTONES = [
   { days: PRELOAD_LEAD_DAYS, text: "Pre-load is open" },
   { days: 3, text: "Three days to go" },
   { days: 2, text: "Two days to go" },
-  // Not "Tomorrow": the body already opens with formatHeadline, which is the
-  // word "Tomorrow" on day one, and the toast read "Tomorrow / Tomorrow · ...".
-  { days: 1, text: "One more sleep" }
+  { days: 1, text: "Tomorrow" }
 ]
 
 function milestoneFor(calendarDays) {
@@ -370,24 +371,31 @@ function milestoneFor(calendarDays) {
   return null
 }
 
-// A milestone day says its own thing; the identity is carried by the glyph and
-// by the day count that opens the body. Every other day is the plain heading,
-// worded exactly as the panel words it.
-function notifyHeadline(cd) {
-  if (cd.released) return TITLE + " is out"
-  var milestone = milestoneFor(cd.calendarDays)
-  if (milestone) return milestone.text
+// Always the same words, so every toast is recognisably from this widget at a
+// glance. Letting the milestone take the headline produced "Tomorrow" over
+// "Tomorrow · ...", and meant the toast was named differently on the handful of
+// days that matter most.
+function notifyHeadline() {
   return TITLE_COUNTDOWN
+}
+
+// What the body leads with: the state of the countdown, in the fewest words
+// that are true on that particular day.
+function notifyLead(cd) {
+  if (cd.released) return "Out now"
+  var milestone = milestoneFor(cd.calendarDays)
+  return milestone ? milestone.text : formatHeadline(cd)
 }
 
 // The daily toast is the once-a-day display, so it carries a phrase too and
 // reads differently each morning. The release date is static and lives in the
 // panel and the tooltip; the count and the line are the parts worth re-reading.
 function notifyBody(cd, dateText, phrase) {
-  if (cd.released) return formatDate(dateText) + " · out now"
+  var lead = notifyLead(cd)
   var line = safeText(phrase)
-  if (line === "") return formatHeadline(cd) + " · " + formatDate(dateText)
-  return formatHeadline(cd) + " · " + line
+  // The date is on the panel and in the tooltip; the body is better spent on
+  // the line. It is the fallback only when there is no phrase to show.
+  return lead + " · " + (line === "" ? formatDate(dateText) : line)
 }
 
 // One notification per local day, on the first tick at or after `hour`. Booting
@@ -494,6 +502,7 @@ if (typeof module !== "undefined") {
     nextPhrase: nextPhrase,
     milestoneFor: milestoneFor,
     notifyHeadline: notifyHeadline,
+    notifyLead: notifyLead,
     notifyBody: notifyBody,
     notifyPlan: notifyPlan,
     errorText: errorText

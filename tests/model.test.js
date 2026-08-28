@@ -359,7 +359,7 @@ check("the tiers escalate in the right order", () => {
   assert.ok(on(10).indexOf("The home straight") >= 0)
   assert.ok(on(6).indexOf("Queue the download") >= 0, "pre-load week says so")
   assert.ok(on(2).indexOf("This is not a drill") >= 0)
-  assert.ok(Model.phrasesFor({ released: true, calendarDays: 0 }).indexOf("Go") >= 0)
+  assert.ok(Model.phrasesFor({ released: true, calendarDays: 0 }).indexOf("Go get it") >= 0)
 })
 
 check("the pre-load tier covers exactly the pre-load week", () => {
@@ -526,27 +526,47 @@ check("milestones mode speaks only on the days that matter", () => {
     null, "83 days out is not a milestone")
   const hundred = planAt(at(2026, 8, 11, 9, 0), { lastKey: "" }, { mode: "milestones" })
   assert.ok(hundred.due, "100 days out is")
-  assert.strictEqual(hundred.due.headline, "100 days to go")
+  assert.strictEqual(hundred.due.body.indexOf("100 days to go · "), 0, hundred.due.body)
 })
 
 check("pre-load day is the one-week milestone", () => {
   const plan = planAt(at(2026, 11, 12, 9, 0), { lastKey: "" })
-  assert.strictEqual(plan.due.headline, "Pre-load is open")
-  assert.ok(plan.due.body.indexOf("7 days · ") === 0, plan.due.body)
+  assert.strictEqual(plan.due.headline, Model.TITLE_COUNTDOWN)
+  assert.strictEqual(plan.due.body.indexOf("Pre-load is open · "), 0, plan.due.body)
 })
 
-check("the toast is headed the same way the panel is", () => {
-  // These drifted once: the panel said "Grand Theft Auto VI - Countdown" while
-  // the notification said only "Grand Theft Auto VI".
+check("every toast is headed identically, on every kind of day", () => {
+  // The headline is the widget's name and nothing else. Letting a milestone
+  // take it produced "Tomorrow" over "Tomorrow · ..." and meant the toast was
+  // named differently on the handful of days that matter most.
   assert.strictEqual(Model.TITLE_COUNTDOWN, Model.TITLE + " - Countdown")
-  const plain = planAt(at(2026, 8, 28, 9, 0), { lastKey: "" })
-  assert.strictEqual(plain.due.headline, Model.TITLE_COUNTDOWN)
+  const days = [
+    at(2026, 8, 28, 9, 0),   // ordinary
+    at(2026, 8, 11, 9, 0),   // 100-day milestone
+    at(2026, 11, 12, 9, 0),  // pre-load
+    at(2026, 11, 18, 9, 0),  // the day before
+    at(2026, 11, 19, 9, 0)   // release day
+  ]
+  for (const when of days) {
+    const plan = planAt(when, { lastKey: "" })
+    assert.ok(plan.due, "nothing due at " + new Date(when).toDateString())
+    assert.strictEqual(plan.due.headline, Model.TITLE_COUNTDOWN,
+      "headline drifted on " + new Date(when).toDateString())
+  }
+})
 
-  // A milestone day says its own thing instead, and release day says it is out.
-  assert.strictEqual(planAt(at(2026, 11, 12, 9, 0), { lastKey: "" }).due.headline,
-    "Pre-load is open")
-  assert.strictEqual(planAt(at(2026, 11, 19, 9, 0), { lastKey: "" }).due.headline,
-    Model.TITLE + " is out")
+check("the body leads with the state, then the line", () => {
+  const lead = when => planAt(when, { lastKey: "" }).due.body.split(" · ")[0]
+  assert.strictEqual(lead(at(2026, 8, 28, 9, 0)), "83 days")
+  assert.strictEqual(lead(at(2026, 10, 20, 9, 0)), "One month to go")
+  assert.strictEqual(lead(at(2026, 11, 12, 9, 0)), "Pre-load is open")
+  assert.strictEqual(lead(at(2026, 11, 18, 9, 0)), "Tomorrow")
+  assert.strictEqual(lead(at(2026, 11, 19, 9, 0)), "Out now")
+
+  // Every body is exactly two parts, so the card never wraps unpredictably.
+  for (const when of [at(2026, 8, 28, 9, 0), at(2026, 11, 12, 9, 0), at(2026, 11, 19, 9, 0)]) {
+    assert.strictEqual(planAt(when, { lastKey: "" }).due.body.split(" · ").length, 2)
+  }
 })
 
 check("no phrase can pair with a milestone headline as a near-duplicate", () => {
@@ -566,28 +586,26 @@ check("no phrase can pair with a milestone headline as a near-duplicate", () => 
   }
 })
 
-check("no milestone headline just repeats the body's opening words", () => {
-  // "Tomorrow" over "Tomorrow · Set an alarm anyway" read like a bug.
-  let state = { lastKey: "", phrases: null }
-  for (let d = 0; d <= 400; d++) {
-    const cd = { released: false, calendarDays: d, days: d, hours: 0, minutes: 0, daysSince: 0 }
-    const milestone = Model.milestoneFor(d)
-    if (!milestone) continue
-    const opening = Model.formatHeadline(cd)
-    assert.notStrictEqual(milestone.text, opening,
-      "milestone at " + d + " days repeats the body's opening: " + milestone.text)
+check("release day gets a line of its own, not the date", () => {
+  const body = planAt(at(2026, 11, 19, 9, 0), { lastKey: "" }).due.body
+  const [lead, line] = body.split(" · ")
+  assert.strictEqual(lead, "Out now")
+  assert.ok(Model.RELEASED_PHRASES.indexOf(line) >= 0, body)
+  // And no released line may restate the lead it sits behind.
+  for (const phrase of Model.RELEASED_PHRASES) {
+    assert.strictEqual(/out now/i.test(phrase), false, "restates the lead: " + phrase)
   }
 })
 
 check("the last days escalate", () => {
-  assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.headline, "One more sleep")
+  assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.body.split(" · ")[0], "Tomorrow")
   assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.urgency, "critical")
   assert.strictEqual(planAt(at(2026, 11, 16, 9, 0), { lastKey: "" }).due.urgency, "normal")
 })
 
 check("release day announces, and then it shuts up for good", () => {
   const day = planAt(at(2026, 11, 19, 9, 0), { lastKey: "" })
-  assert.strictEqual(day.due.headline, "Grand Theft Auto VI is out")
+  assert.strictEqual(day.due.headline, Model.TITLE_COUNTDOWN)
   assert.strictEqual(day.due.urgency, "critical")
 
   for (const d of [20, 21, 25]) {
@@ -606,7 +624,7 @@ check("a full run to launch fires once a day and hits every milestone once", () 
   while (ms < end) {
     const plan = planAt(ms, state)
     state = plan.state
-    if (plan.due) headlines.push([Model.localDayKey(ms), plan.due.headline])
+    if (plan.due) headlines.push([Model.localDayKey(ms), plan.due.body.split(" · ")[0]])
     ms += 20 * 60 * 1000
   }
 
@@ -615,14 +633,14 @@ check("a full run to launch fires once a day and hits every milestone once", () 
   assert.strictEqual(headlines.length, 84, "83 countdown days plus release day")
 
   const byDay = new Map(headlines)
-  assert.strictEqual(byDay.get("2026-08-28"), Model.TITLE_COUNTDOWN)
+  assert.strictEqual(byDay.get("2026-08-28"), "83 days")
   assert.strictEqual(byDay.get("2026-09-30"), "50 days to go")
   assert.strictEqual(byDay.get("2026-10-20"), "One month to go")
   assert.strictEqual(byDay.get("2026-11-05"), "Two weeks to go")
   assert.strictEqual(byDay.get("2026-11-12"), "Pre-load is open")
   assert.strictEqual(byDay.get("2026-11-16"), "Three days to go")
-  assert.strictEqual(byDay.get("2026-11-18"), "One more sleep")
-  assert.strictEqual(byDay.get("2026-11-19"), "Grand Theft Auto VI is out")
+  assert.strictEqual(byDay.get("2026-11-18"), "Tomorrow")
+  assert.strictEqual(byDay.get("2026-11-19"), "Out now")
 
   // Each milestone in range appears exactly once across the whole run.
   const texts = headlines.map(h => h[1])
