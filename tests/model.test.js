@@ -262,9 +262,18 @@ check("the explicit panel formats override auto in both directions", () => {
   assert.strictEqual(Model.showsExactLine(far, "both"), true, "both always shows it")
   assert.strictEqual(Model.showsExactLine(near, "days"), false, "days never does")
   assert.strictEqual(Model.showsExactLine(near, "exact"), false, "exact is the big line instead")
-  // An unknown value must behave as auto rather than blanking the panel.
-  assert.strictEqual(Model.showsExactLine(near, "nonsense"), true)
+  // An unrecognised value has to land where Service.qml's own fallback lands,
+  // or the panel and the setting disagree about what is on screen.
+  assert.strictEqual(Model.showsExactLine(near, "nonsense"), false)
   assert.strictEqual(Model.showsExactLine(far, "nonsense"), false)
+})
+
+checkPinned("the shipped default is a single line of exact time", () => {
+  // What the panel actually shows out of the box: one big ticking figure and
+  // nothing beneath it.
+  const cd = Model.countdown(at(2026, 8, 28, 14, 18), TARGET)
+  assert.strictEqual(Model.showsExactLine(cd, "exact"), false, "no second line")
+  assert.strictEqual(Model.formatBar(cd, "dhm"), "82d 10h 42m", "and this is the big one")
 })
 
 check("hours and minutes are zero padded, days are not", () => {

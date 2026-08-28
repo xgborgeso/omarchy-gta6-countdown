@@ -19,7 +19,7 @@
     "defaults": {
       "releaseDate": "2026-11-19",
       "barFormat": "icon",
-      "panelFormat": "auto",
+      "panelFormat": "exact",
       "notifyMode": "daily",
       "notifyHour": 9,
       "hideAfterDays": 30
@@ -41,9 +41,9 @@
       {
         "key": "panelFormat",
         "type": "string",
-        "label": "Panel countdown: auto, both readings, sleeps count only, or exact only",
-        "options": ["auto", "both", "days", "exact"],
-        "defaultValue": "auto"
+        "label": "Panel countdown: exact time, auto, both readings, or sleeps count only",
+        "options": ["exact", "auto", "both", "days"],
+        "defaultValue": "exact"
       },
       {
         "key": "notifyMode",

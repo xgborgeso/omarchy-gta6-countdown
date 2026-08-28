@@ -300,8 +300,11 @@ function pickPhrase(cd, previous) {
 // "auto" holds the line back until then. The tooltip carries it throughout.
 function showsExactLine(cd, format) {
   if (format === "both") return true
-  if (format === "days" || format === "exact") return false
-  return !!cd && !cd.released && cd.calendarDays <= 2
+  if (format === "auto") return !!cd && !cd.released && cd.calendarDays <= 2
+  // "days" and "exact" both print a single line, and an unrecognised value has
+  // to land on the same default the service falls back to, or the panel and the
+  // setting would disagree about what is on screen.
+  return false
 }
 
 // Milestones key on the sleeps count, so each fires on exactly one calendar

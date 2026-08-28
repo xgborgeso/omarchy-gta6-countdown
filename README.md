@@ -9,7 +9,7 @@ no network, and nothing to read from the system.
 
 <p align="center">
   <img src="preview.png" width="484"
-       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 83 days above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
+       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 55m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
 ## Features
@@ -17,9 +17,8 @@ no network, and nothing to read from the system.
 - One icon on the bar, the same width as every other chip. The reading lives in
   the tooltip and the panel rather than a string that grows and shrinks and
   shoves its neighbours sideways once a minute
-- One number, until precision earns its place. `83 days` answers the question on
-  its own; the exact `01h 42m` appears beneath it only in the final two days,
-  when the minutes are the point. The exact figure is in the tooltip throughout
+- One line of exact time in the panel — `82d 09h 55m`, ticking every minute.
+  Switch it for the plain sleeps count with `panelFormat`
 - Pre-load as well as release, since pre-load opens a week ahead and is the date
   you actually have to act on
 - One reminder a day, at an hour you choose, with a milestone line at 100 days,
@@ -57,7 +56,7 @@ moves again you retarget it yourself instead of waiting for a release here.
 | --- | --- | --- |
 | `releaseDate` | `2026-11-19` | Target date, `YYYY-MM-DD`, counted to local midnight. An unparseable value falls back to the shipped date and says so in the panel. |
 | `barFormat` | `icon` | `icon` shows the glyph alone. `days` shows the sleeps count. `dhm` shows exact time remaining, and ticks every minute. |
-| `panelFormat` | `auto` | `auto` shows the sleeps count alone, adding the exact figure beneath it only in the final two days. `both` always shows both, `days` never does, `exact` shows only the ticking figure. |
+| `panelFormat` | `exact` | `exact` shows one line of ticking time. `days` shows the sleeps count instead. `auto` shows the sleeps count, adding the exact figure beneath it in the final two days. `both` always shows both. |
 | `notifyMode` | `daily` | `daily`, `milestones` only, or `off`. |
 | `notifyHour` | `9` | Earliest hour for the daily reminder, `0`–`23`. |
 | `hideAfterDays` | `30` | Retire the widget this many days after release. `0` keeps it forever. |
@@ -136,10 +135,10 @@ agree at local midnight. Every bare number — the tooltip's neighbour, the `day
 bar format, every notification — uses the sleeps count; only the ticking figure
 is exact.
 
-This is why `auto` is the default: at eighty days out the exact line is noise
-under a number that already answers the question, and showing both only invites
-you to notice they disagree. In the last two days the minutes are the point, so
-that is when it appears.
+The panel ships showing only the exact figure, so the two never sit together
+unless you ask for it. `auto` is the middle ground: the sleeps count on its own
+until the final two days, then the exact figure joins it, when the minutes are
+actually the point.
 
 The gap can also be more than you expect. Between August and November the clocks
 go back, so there is one more real hour of waiting than the calendar suggests,

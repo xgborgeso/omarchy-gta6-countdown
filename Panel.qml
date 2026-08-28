@@ -230,9 +230,7 @@ Ui.Panel {
               text: root.exactOnly ? Model.formatBar(root.cd, "dhm") : Model.formatHeadline(root.cd)
               color: root.cd.released || root.cd.calendarDays <= 1 ? root.urgent : root.foreground
               font.family: root.fontFamily
-              // "82d 10h 24m" is half again as many characters as "83 days" and
-              // would run into the panel edge at display size.
-              font.pixelSize: root.exactOnly ? Style.font.title : Style.font.display
+              font.pixelSize: Style.font.display
               font.bold: true
               horizontalAlignment: Text.AlignHCenter
             }

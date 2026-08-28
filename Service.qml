@@ -28,8 +28,8 @@ Item {
   // What the middle of the panel shows. "both" prints the sleeps count large
   // with the exact figure under it; the single-value modes drop one of them.
   readonly property string panelFormat: {
-    var format = String(setting("panelFormat", "auto"))
-    return format === "days" || format === "exact" || format === "both" ? format : "auto"
+    var format = String(setting("panelFormat", "exact"))
+    return format === "days" || format === "auto" || format === "both" ? format : "exact"
   }
   readonly property string notifyMode: {
     var mode = String(setting("notifyMode", "daily"))
