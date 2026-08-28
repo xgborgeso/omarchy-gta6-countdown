@@ -115,32 +115,67 @@ Item {
   // reboot.
   property var notifyState: ({ lastKey: "", phrases: null })
   property bool stampLoaded: false
-  property bool stampDirRepaired: false
+  property string stampError: ""
 
-  // Stored as JSON now. A stamp written by an earlier version is a bare date on
-  // the first line, which still has to be honoured or upgrading would produce a
-  // second toast on a day already spoken for.
-  function parseStamp(text) {
-    var raw = String(text || "").trim()
-    if (raw === "") return { lastKey: "", phrases: null }
-    if (raw.charAt(0) === "{") {
-      try {
-        var parsed = JSON.parse(raw)
-        return {
-          lastKey: parsed && parsed.lastKey ? String(parsed.lastKey) : "",
-          phrases: parsed && parsed.phrases ? parsed.phrases : null
-        }
-      } catch (e) {}
+  // The stamp is read and written by helper/state.py rather than by FileView.
+  // FileView takes a path and nothing else: it cannot open O_NOFOLLOW, cannot
+  // fstat what it opened, and cannot stop at a byte limit. The stamp sits at a
+  // predictable path, so any same-UID process could swap it for a symlink to
+  // /dev/zero and feed that into this long-lived process. atomicWrites guards
+  // the write; nothing in QML guards the read.
+  function helperScript() {
+    var override = String(setting("helperPath", "") || "").trim()
+    if (override) return override
+    var resolved = toLocalFile(Qt.resolvedUrl("helper/state.py"))
+    if (resolved.charAt(0) === "/") return resolved
+    return toLocalFile(Qt.resolvedUrl(".")) + "/helper/state.py"
+  }
+
+  function toLocalFile(url) {
+    var s = String(url || "").trim()
+    if (s.indexOf("file:") === 0) {
+      s = s.replace(/^file:\/\//i, "")
+      s = s.replace(/^localhost/i, "")
+      if (s.charAt(0) !== "/") s = "/" + s
+      try { s = decodeURIComponent(s) } catch (e) {}
     }
-    return { lastKey: raw.split("\n")[0].trim(), phrases: null }
+    return s.replace(/\/+$/, "")
   }
 
-  readonly property string stateDir: {
-    var base = String(Quickshell.env("XDG_STATE_HOME") || "").trim()
-    if (base === "") base = String(Quickshell.env("HOME") || "") + "/.local/state"
-    return base + "/omarchy-gta6-countdown"
+  // The helper answers with one line of JSON and exits 0 whatever happened.
+  // Anything it refused arrives as ok:false with an empty state, which reads
+  // here as "nothing said yet today": the widget may repeat one toast, and the
+  // next write replaces the offending file. Refusing to speak instead would let
+  // anyone who can touch the file silence the reminder for good.
+  function applyStamp(raw) {
+    var next = { lastKey: "", phrases: null }
+    try {
+      var parsed = JSON.parse(String(raw || ""))
+      if (parsed && parsed.ok === true && parsed.state) {
+        next.lastKey = typeof parsed.state.lastKey === "string" ? parsed.state.lastKey : ""
+        next.phrases = parsed.state.phrases || null
+      } else if (parsed && parsed.error) {
+        stampError = Model.errorText(parsed.error)
+      }
+    } catch (e) {
+      stampError = "Could not read the reminder stamp"
+    }
+    notifyState = next
+    stampLoaded = true
+    maybeNotify()
   }
-  readonly property string stampPath: stateDir + "/last-notified"
+
+  function readStamp() {
+    if (readProcess.running) return
+    readProcess.command = ["python3", helperScript(), "read"]
+    readProcess.running = true
+  }
+
+  function writeStamp(state) {
+    if (writeProcess.running) return
+    writeProcess.command = ["python3", helperScript(), "write", JSON.stringify(state)]
+    writeProcess.running = true
+  }
 
   function maybeNotify() {
     // Settings arrive one event-loop turn after the component is built, and the
@@ -159,7 +194,7 @@ Item {
     if (!plan.due) return
 
     notifyState = plan.state
-    stamp.setText(JSON.stringify(plan.state) + "\n")
+    writeStamp(plan.state)
     sendNotify(plan.due)
   }
 
@@ -180,34 +215,29 @@ Item {
     notifyProcess.running = true
   }
 
-  FileView {
-    id: stamp
-    path: root.stampPath
-    preload: true
-    atomicWrites: true
-    // A missing stamp is the normal first run, not something to shout about.
-    printErrors: false
+  Process {
+    id: readProcess
+    running: false
+    command: []
+    stdout: StdioCollector { id: readStdout; waitForEnd: true }
+    onExited: function (exitCode) {
+      // A helper that could not run at all leaves the widget with no memory of
+      // yesterday, which costs at most one repeated toast.
+      if (exitCode !== 0) {
+        root.stampError = "Reminder stamp helper failed"
+        root.notifyState = { lastKey: "", phrases: null }
+        root.stampLoaded = true
+        root.maybeNotify()
+        return
+      }
+      root.applyStamp(readStdout.text)
+    }
+  }
 
-    onLoaded: {
-      root.notifyState = root.parseStamp(stamp.text())
-      root.stampLoaded = true
-      root.maybeNotify()
-    }
-    onLoadFailed: {
-      // No stamp yet: this machine has never been told anything.
-      root.notifyState = { lastKey: "", phrases: null }
-      root.stampLoaded = true
-      root.maybeNotify()
-    }
-    onSaveFailed: {
-      // Almost always a missing state directory on first run. Create it once
-      // and retry; if it fails again the widget still works, it just forgets
-      // across restarts rather than breaking.
-      if (root.stampDirRepaired) return
-      root.stampDirRepaired = true
-      mkdirProcess.command = ["mkdir", "-p", root.stateDir]
-      mkdirProcess.running = true
-    }
+  Process {
+    id: writeProcess
+    running: false
+    command: []
   }
 
   /* --------------------------------------------------------------- wiring */
@@ -222,6 +252,9 @@ Item {
   function applySettings() {
     if (settingsApplied) return
     settingsApplied = true
+    // Only now is `helperPath` known, and the stamp has to be read after that
+    // or an overridden helper would be ignored on the one run that matters.
+    readStamp()
     refresh()
   }
 
@@ -258,14 +291,4 @@ Item {
     onExited: function (exitCode) { if (exitCode === 0) root.copied() }
   }
 
-  Process {
-    id: mkdirProcess
-    running: false
-    command: []
-    onExited: function (exitCode) {
-      if (exitCode === 0 && root.notifyState && root.notifyState.lastKey !== "") {
-        stamp.setText(JSON.stringify(root.notifyState) + "\n")
-      }
-    }
-  }
 }

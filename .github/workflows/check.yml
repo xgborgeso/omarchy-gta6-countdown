@@ -21,8 +21,16 @@ env:
 
 jobs:
   tests:
-    name: tests
+    name: tests (python ${{ matrix.python }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Omarchy is rolling Arch, so it runs a newer Python than most distros.
+        # The low end is the floor the helper's syntax and os.open(dir_fd=...)
+        # usage actually needs; the high end is what a current Arch install will
+        # really execute.
+        python: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v5
 
@@ -32,13 +40,19 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python }}
 
       - name: Model tests
         # Re-runs itself once per timezone, a southern-hemisphere zone and a
         # half-hour offset included. Half of what it checks is local-midnight
         # behaviour, which a runner in UTC alone would agree with a bug about.
         run: node tests/model.test.js
+
+      - name: Stamp helper tests
+        # The helper exists because FileView cannot open O_NOFOLLOW, fstat what
+        # it opened, or stop at a byte limit. These run the substitutions that
+        # motivated it against a real temporary directory.
+        run: python3 tests/helper.test.py -v
 
       - name: QML guards
         run: python3 tests/qml.test.py -v

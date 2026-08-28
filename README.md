@@ -4,8 +4,8 @@
 
 A minimalist Grand Theft Auto VI countdown for the Omarchy bar: one icon, a
 panel with the time remaining and both dates that matter, a link to the official
-page, and one reminder a day. It is pure date arithmetic — no daemon, no helper,
-no network, and nothing to read from the system.
+page, and one reminder a day. It is pure date arithmetic: no daemon, no network,
+and nothing read from the system but its own reminder stamp.
 
 <p align="center">
   <img src="preview.png" width="428"
@@ -160,16 +160,40 @@ this one does outside its own window.
 
 | | |
 | --- | --- |
-| Runs | `omarchy-notification-send` for the daily reminder, from `$OMARCHY_PATH` |
+| Runs | `python3 helper/state.py` to read and write the reminder stamp |
+| | `omarchy-notification-send` for the daily reminder, from `$OMARCHY_PATH` |
 | | `xdg-open` for the official page, only when you click the link or press `o` |
 | | `wl-copy` for the removal command, only when you click copy after release |
-| | `mkdir -p` once, and only if writing the state file failed because its directory did not exist |
-| Writes | `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`, one line of JSON |
-| Reads | Nothing. No `/sys`, no `/proc`, no config beyond its own bar settings |
+| Writes | `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`, one line of JSON, mode `0600` in a `0700` directory |
+| Reads | That same file, and nothing else. No `/sys`, no `/proc`, no config beyond its own bar settings |
 | Network | None. The only URL is the one handed to `xdg-open` on a click |
 
-There is no helper, no daemon, no installer, no remote build, and no elevated
-privilege. Every value that reaches a label or a notification goes through
+No daemon, no installer, no remote build, and no elevated privilege. Python 3 is
+the only dependency, and the standard library is all the helper uses.
+
+### Why the stamp goes through a helper
+
+Quickshell's `FileView` takes a path and nothing else. It cannot open with
+`O_NOFOLLOW`, cannot `fstat` what it opened, and cannot stop reading at a byte
+limit. The stamp sits at a predictable path under `$XDG_STATE_HOME`, so any
+process running as you could replace it with a symlink to `/dev/zero`, or with a
+gigabyte of text, and that would be read straight into the long-lived shell.
+`atomicWrites` guards the write; nothing in QML guards the read.
+
+`helper/state.py` does the read instead, where the real primitives exist. It
+opens the directory `O_NOFOLLOW|O_DIRECTORY` and the file relative to that
+descriptor, so neither component can be swapped between the check and the open.
+It `fstat`s the descriptor for a regular, same-owner, single-link file before a
+byte is read, stops at 4 KiB, refuses an oversized file rather than truncating
+it, and validates every field of the parsed shape.
+
+Anything it refuses fails closed to an empty state, which the widget reads as
+"nothing said yet today". The cost is at most one repeated notification, and the
+next write replaces the offending file atomically. Refusing to speak at all
+would let anyone who can touch that file silence the reminder permanently, which
+is the worse failure.
+
+Every value that reaches a label or a notification also goes through
 `Model.safeText`, and every text sink is pinned to `Text.PlainText`, which
 `tests/qml.test.py` enforces.
 
@@ -221,6 +245,7 @@ compositor, no shell and no display:
 
 ```bash
 node tests/model.test.js
+python3 tests/helper.test.py
 python3 tests/qml.test.py
 omarchy plugin validate .
 ```
@@ -231,6 +256,13 @@ among them. Half of what it checks is local-midnight behaviour, which a runner i
 UTC alone would happily agree with a bug about. It also walks every day between
 now and release to prove the reminder fires once a day and each milestone exactly
 once.
+
+`tests/helper.test.py` runs the stamp helper against a real temporary
+directory and asserts it refuses the substitutions that motivated it: a symlink
+at the stamp path, a symlinked state directory, an oversized file, a directory
+where the file should be, a group-writable state directory, invalid UTF-8, and
+crafted field values. It also checks that writing over a symlink replaces the
+link rather than its target.
 
 `tests/qml.test.py` reads the QML rather than running it, and checks the things
 that load fine in an editor and fail silently in the bar: a text sink left on
