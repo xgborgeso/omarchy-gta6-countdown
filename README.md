@@ -8,8 +8,8 @@ page, and one reminder a day. It is pure date arithmetic — no daemon, no helpe
 no network, and nothing to read from the system.
 
 <p align="center">
-  <img src="preview.png" width="442"
-       alt="The GTA VI Countdown panel open in the Omarchy bar, reading 83 days with 82d 10h 24m remaining, above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
+  <img src="preview.png" width="484"
+       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - COUNTDOWN, reading 83 days above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
 ## Features
@@ -17,9 +17,9 @@ no network, and nothing to read from the system.
 - One icon on the bar, the same width as every other chip. The reading lives in
   the tooltip and the panel rather than a string that grows and shrinks and
   shoves its neighbours sideways once a minute
-- Two readings side by side: how many sleeps away it is, and the exact time
-  remaining. Above a day apart the two differ by one, and showing both makes
-  that obvious instead of looking like a bug
+- One number, until precision earns its place. `83 days` answers the question on
+  its own; the exact `01h 42m` appears beneath it only in the final two days,
+  when the minutes are the point. The exact figure is in the tooltip throughout
 - Pre-load as well as release, since pre-load opens a week ahead and is the date
   you actually have to act on
 - One reminder a day, at an hour you choose, with a milestone line at 100 days,
@@ -57,7 +57,7 @@ moves again you retarget it yourself instead of waiting for a release here.
 | --- | --- | --- |
 | `releaseDate` | `2026-11-19` | Target date, `YYYY-MM-DD`, counted to local midnight. An unparseable value falls back to the shipped date and says so in the panel. |
 | `barFormat` | `icon` | `icon` shows the glyph alone. `days` shows the sleeps count. `dhm` shows exact time remaining, and ticks every minute. |
-| `panelFormat` | `both` | `both` prints the sleeps count large with the exact figure beneath it. `days` keeps only the large count. `exact` shows only the ticking figure. |
+| `panelFormat` | `auto` | `auto` shows the sleeps count alone, adding the exact figure beneath it only in the final two days. `both` always shows both, `days` never does, `exact` shows only the ticking figure. |
 | `notifyMode` | `daily` | `daily`, `milestones` only, or `off`. |
 | `notifyHour` | `9` | Earliest hour for the daily reminder, `0`–`23`. |
 | `hideAfterDays` | `30` | Retire the widget this many days after release. `0` keeps it forever. |
@@ -125,15 +125,21 @@ omarchy-shell io.github.xgborgeso.gta6-countdown toggle
 omarchy-shell io.github.xgborgeso.gta6-countdown link
 ```
 
-## Two numbers, on purpose
+## Why the two numbers disagree
 
-The panel shows `83 days` above `82d 10h 24m remaining`, and both are correct.
+Set `panelFormat` to `both` and the panel shows `83 days` above
+`82d 10h 24m remaining`. Both are correct.
 
 `83` is how many sleeps away it is, which is what a person means by "days left".
 `82d 10h` is exact time on the clock. They differ by one for most of the day and
 agree at local midnight. Every bare number — the tooltip's neighbour, the `days`
 bar format, every notification — uses the sleeps count; only the ticking figure
 is exact.
+
+This is why `auto` is the default: at eighty days out the exact line is noise
+under a number that already answers the question, and showing both only invites
+you to notice they disagree. In the last two days the minutes are the point, so
+that is when it appears.
 
 The gap can also be more than you expect. Between August and November the clocks
 go back, so there is one more real hour of waiting than the calendar suggests,

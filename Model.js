@@ -293,6 +293,17 @@ function pickPhrase(cd, previous) {
   return choice
 }
 
+// Whether the panel prints the exact figure under the big number. At eighty
+// days out, precision to the minute is noise beneath a number that already
+// answers the question, and showing both invites the reader to notice they
+// disagree by one. In the last two days the minutes are the whole point, so
+// "auto" holds the line back until then. The tooltip carries it throughout.
+function showsExactLine(cd, format) {
+  if (format === "both") return true
+  if (format === "days" || format === "exact") return false
+  return !!cd && !cd.released && cd.calendarDays <= 2
+}
+
 // Milestones key on the sleeps count, so each fires on exactly one calendar
 // day. Wording avoids repeating a figure the ticking chip would contradict.
 var MILESTONES = [
@@ -413,6 +424,7 @@ if (typeof module !== "undefined") {
     formatTooltip: formatTooltip,
     formatHeadline: formatHeadline,
     formatExact: formatExact,
+    showsExactLine: showsExactLine,
     PHRASE_TIERS: PHRASE_TIERS,
     RELEASED_PHRASES: RELEASED_PHRASES,
     phrasesFor: phrasesFor,

@@ -244,6 +244,29 @@ check("the tooltip carries what the chip stopped showing", () => {
   assert.ok(out.indexOf("out now") >= 0)
 })
 
+check("auto holds the exact line back until the minutes matter", () => {
+  const on = d => Model.showsExactLine({ released: false, calendarDays: d }, "auto")
+  assert.strictEqual(on(83), false, "noise at eighty days out")
+  assert.strictEqual(on(7), false)
+  assert.strictEqual(on(3), false)
+  assert.strictEqual(on(2), true, "the final two days earn it")
+  assert.strictEqual(on(1), true)
+  assert.strictEqual(on(0), true)
+  assert.strictEqual(Model.showsExactLine({ released: true, daysSince: 0 }, "auto"), false,
+    "nothing to count once it is out")
+})
+
+check("the explicit panel formats override auto in both directions", () => {
+  const far = { released: false, calendarDays: 83 }
+  const near = { released: false, calendarDays: 1 }
+  assert.strictEqual(Model.showsExactLine(far, "both"), true, "both always shows it")
+  assert.strictEqual(Model.showsExactLine(near, "days"), false, "days never does")
+  assert.strictEqual(Model.showsExactLine(near, "exact"), false, "exact is the big line instead")
+  // An unknown value must behave as auto rather than blanking the panel.
+  assert.strictEqual(Model.showsExactLine(near, "nonsense"), true)
+  assert.strictEqual(Model.showsExactLine(far, "nonsense"), false)
+})
+
 check("hours and minutes are zero padded, days are not", () => {
   const cd = Model.countdown(at(2026, 11, 15, 20, 5), TARGET)
   assert.strictEqual(Model.formatBar(cd, "dhm"), "3d 03h 55m")

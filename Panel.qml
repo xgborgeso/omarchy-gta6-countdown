@@ -140,7 +140,9 @@ Ui.Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(360))
+    // Sized so "Grand Theft Auto VI - COUNTDOWN" clears the title's elide point
+    // with the link button already taking its share of the row.
+    contentWidth: panel.fittedContentWidth(Style.space(400))
     contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(520))
 
     Ui.PanelKeyCatcher {
@@ -173,12 +175,11 @@ Ui.Panel {
           Ui.PanelHero {
             id: hero
             width: parent.width
-            title: "Grand Theft Auto VI"
-            // As a pill rather than appended to the title: at this panel width
-            // "Grand Theft Auto VI - Countdown" is past the title's elide point
-            // and would render as "Grand Theft Auto VI - Countd...". The pill
-            // also shrinks the title to fit rather than colliding with it.
-            detail: root.cd.released ? "" : "COUNTDOWN"
+            // The suffix goes once the date has passed and there is nothing
+            // left to count.
+            title: root.cd.released
+              ? "Grand Theft Auto VI"
+              : "Grand Theft Auto VI - COUNTDOWN"
             meta: root.heroMeta
             foreground: root.foreground
             fontFamily: root.fontFamily
@@ -238,7 +239,7 @@ Ui.Panel {
 
             Text {
               textFormat: Text.PlainText
-              visible: svc.panelFormat === "both"
+              visible: Model.showsExactLine(root.cd, svc.panelFormat)
               width: parent.width
               text: Model.formatExact(root.cd)
               color: root.dim
