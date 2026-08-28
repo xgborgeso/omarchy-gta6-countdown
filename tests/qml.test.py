@@ -105,7 +105,7 @@ class GlyphTests(unittest.TestCase):
 
     def test_model_declares_the_glyphs(self):
         source = MODEL.read_text(encoding="utf-8")
-        for name in ("GLYPH", "LINK_GLYPH", "DATE_GLYPH"):
+        for name in ("GLYPH", "LINK_GLYPH", "DATE_GLYPH", "COPY_GLYPH", "CHECK_GLYPH"):
             self.assertRegex(source, r"var %s = \"(\\u[0-9a-f]{4})+\"" % name)
 
     def test_no_control_characters_anywhere(self):
@@ -184,6 +184,12 @@ class ManifestAgreementTests(unittest.TestCase):
         self.assertEqual(sorted(defaults), sorted(schema))
         for key, entry in schema.items():
             self.assertEqual(entry["defaultValue"], defaults[key], key)
+
+    def test_the_removal_command_names_the_real_plugin_id(self):
+        # The panel invites the user to paste this. An id that drifted from the
+        # manifest would hand them a command that silently removes nothing.
+        model = MODEL.read_text(encoding="utf-8")
+        self.assertIn('var PLUGIN_ID = "%s"' % self.manifest["id"], model)
 
     def test_the_shipped_release_date_matches_the_model(self):
         model = MODEL.read_text(encoding="utf-8")

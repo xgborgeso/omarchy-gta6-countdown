@@ -25,6 +25,12 @@ Item {
     var format = String(setting("barFormat", "icon"))
     return format === "days" || format === "dhm" ? format : "icon"
   }
+  // What the middle of the panel shows. "both" prints the sleeps count large
+  // with the exact figure under it; the single-value modes drop one of them.
+  readonly property string panelFormat: {
+    var format = String(setting("panelFormat", "both"))
+    return format === "days" || format === "exact" ? format : "both"
+  }
   readonly property string notifyMode: {
     var mode = String(setting("notifyMode", "daily"))
     return mode === "off" || mode === "milestones" ? mode : "daily"
@@ -63,6 +69,16 @@ Item {
     if (linkProcess.running) return
     linkProcess.command = ["xdg-open", Model.OFFICIAL_URL]
     linkProcess.running = true
+  }
+
+  signal copied()
+
+  // wl-copy reads the value as one argv entry, so the command text is never
+  // reparsed by a shell on its way to the clipboard.
+  function copyRemoveCommand() {
+    if (copyProcess.running) return
+    copyProcess.command = ["wl-copy", "--", Model.REMOVE_COMMAND]
+    copyProcess.running = true
   }
 
   /* ------------------------------------------------------------ the clock */
@@ -212,6 +228,13 @@ Item {
     id: linkProcess
     running: false
     command: []
+  }
+
+  Process {
+    id: copyProcess
+    running: false
+    command: []
+    onExited: function (exitCode) { if (exitCode === 0) root.copied() }
   }
 
   Process {

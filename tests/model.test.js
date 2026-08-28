@@ -268,6 +268,43 @@ check("the date renders long form, and a broken one does not crash it", () => {
   assert.strictEqual(Model.formatDate("nonsense"), "nonsense")
 })
 
+/* ---------------------------------------------------------------- farewell */
+
+check("nothing is said about removal while the countdown still has a job", () => {
+  for (const when of [at(2026, 8, 28, 9, 0), at(2026, 11, 18, 23, 59)]) {
+    assert.strictEqual(Model.farewellText(Model.countdown(when, TARGET), 30), "")
+  }
+})
+
+check("release day points at the game, not at the uninstall", () => {
+  const text = Model.farewellText(Model.countdown(at(2026, 11, 19, 9, 0), TARGET), 30)
+  assert.strictEqual(text, "Go and play. You can remove this whenever.")
+})
+
+check("afterwards it says how long it has left before retiring itself", () => {
+  const on = d => Model.farewellText(Model.countdown(at(2026, 11, d, 9, 0), TARGET), 30)
+  assert.strictEqual(on(20), "Nothing left to count. Retiring in 29 days.")
+  assert.strictEqual(on(29), "Nothing left to count. Retiring in 20 days.")
+  // Day 30 after release is the retirement day itself.
+  assert.strictEqual(Model.farewellText({ released: true, daysSince: 29 }, 30),
+    "Nothing left to count. Retiring tomorrow.")
+  assert.strictEqual(Model.farewellText({ released: true, daysSince: 30 }, 30),
+    "Nothing left to count.")
+})
+
+check("with retirement switched off it does not promise to leave", () => {
+  const text = Model.farewellText({ released: true, daysSince: 400 }, 0)
+  assert.strictEqual(text, "Nothing left to count.")
+  assert.strictEqual(text.indexOf("Retiring"), -1)
+})
+
+check("the removal command names this plugin and nothing else", () => {
+  assert.strictEqual(Model.REMOVE_COMMAND, "omarchy plugin remove " + Model.PLUGIN_ID)
+  // A command a user is invited to paste must be a plain single line.
+  assert.strictEqual(Model.REMOVE_COMMAND, Model.safeText(Model.REMOVE_COMMAND, 200))
+  assert.strictEqual(Model.REMOVE_COMMAND.indexOf("\n"), -1)
+})
+
 /* ----------------------------------------------------------------- phrases */
 
 check("every day from a year out to launch lands on a populated tier", () => {

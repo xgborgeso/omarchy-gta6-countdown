@@ -26,6 +26,7 @@ Ui.Panel {
   // Only the text chip prefixes the glyph; the icon chip is the glyph.
   readonly property string barText: Model.GLYPH + "  " + Model.formatBar(cd, svc.barFormat)
   readonly property string tooltip: Model.formatTooltip(cd, svc.target.date)
+  readonly property bool exactOnly: svc.panelFormat === "exact"
 
   // Chosen when the panel opens rather than bound, so the subtitle holds still
   // while the panel is up instead of resampling on every minute tick.
@@ -50,9 +51,27 @@ Ui.Panel {
     Qt.callLater(function () { keyCatcher.forceActiveFocus() })
   }
 
+  // Confirmation that the click did something, reset shortly after so the
+  // button does not sit there claiming success from ten minutes ago.
+  property bool copied: false
+
+  function copyRemoveCommand() {
+    svc.copyRemoveCommand()
+  }
+
   Service {
     id: svc
     settings: root.settings
+    onCopied: {
+      root.copied = true
+      copiedReset.restart()
+    }
+  }
+
+  Timer {
+    id: copiedReset
+    interval: 2000
+    onTriggered: root.copied = false
   }
 
   IpcHandler {
@@ -155,6 +174,11 @@ Ui.Panel {
             id: hero
             width: parent.width
             title: "Grand Theft Auto VI"
+            // As a pill rather than appended to the title: at this panel width
+            // "Grand Theft Auto VI - Countdown" is past the title's elide point
+            // and would render as "Grand Theft Auto VI - Countd...". The pill
+            // also shrinks the title to fit rather than colliding with it.
+            detail: root.cd.released ? "" : "COUNTDOWN"
             meta: root.heroMeta
             foreground: root.foreground
             fontFamily: root.fontFamily
@@ -202,16 +226,19 @@ Ui.Panel {
             Text {
               textFormat: Text.PlainText
               width: parent.width
-              text: Model.formatHeadline(root.cd)
+              text: root.exactOnly ? Model.formatBar(root.cd, "dhm") : Model.formatHeadline(root.cd)
               color: root.cd.released || root.cd.calendarDays <= 1 ? root.urgent : root.foreground
               font.family: root.fontFamily
-              font.pixelSize: Style.font.display
+              // "82d 10h 24m" is half again as many characters as "83 days" and
+              // would run into the panel edge at display size.
+              font.pixelSize: root.exactOnly ? Style.font.title : Style.font.display
               font.bold: true
               horizontalAlignment: Text.AlignHCenter
             }
 
             Text {
               textFormat: Text.PlainText
+              visible: svc.panelFormat === "both"
               width: parent.width
               text: Model.formatExact(root.cd)
               color: root.dim
@@ -235,10 +262,64 @@ Ui.Panel {
 
           DateRow {
             width: parent.width
+            // Once the game is out, the pre-load date is history nobody needs.
+            visible: !root.cd.released
             label: "Pre-load"
             value: Model.formatDate(svc.preloadDate)
             highlight: root.cd.preloadOpen
             note: root.cd.preloadOpen ? "open" : ""
+          }
+
+          // The way out, offered rather than hidden. The widget retires itself
+          // on `hideAfterDays` anyway, but someone who opens the panel after
+          // launch should not have to go looking for the command.
+          Column {
+            width: parent.width
+            visible: root.cd.released
+            spacing: Style.space(8)
+
+            Ui.PanelSeparator {
+              width: parent.width
+              foreground: root.foreground
+            }
+
+            Text {
+              textFormat: Text.PlainText
+              width: parent.width
+              text: Model.farewellText(root.cd, svc.hideAfterDays)
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              wrapMode: Text.WordWrap
+              horizontalAlignment: Text.AlignHCenter
+            }
+
+            Row {
+              anchors.horizontalCenter: parent.horizontalCenter
+              spacing: Style.space(8)
+
+              Text {
+                id: removeCommand
+                textFormat: Text.PlainText
+                text: Model.REMOVE_COMMAND
+                color: Qt.darker(root.foreground, 1.4)
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                elide: Text.ElideMiddle
+                width: Math.max(0, column.width - Style.space(64))
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              Ui.PanelActionButton {
+                iconText: root.copied ? Model.CHECK_GLYPH : Model.COPY_GLYPH
+                tooltipText: root.copied ? "Copied" : "Copy the removal command"
+                foreground: root.copied ? root.foreground : root.dim
+                hoverColor: root.foreground
+                fontFamily: root.fontFamily
+                anchors.verticalCenter: parent.verticalCenter
+                onClicked: root.copyRemoveCommand()
+              }
+            }
           }
         }
       }

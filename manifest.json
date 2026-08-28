@@ -19,6 +19,7 @@
     "defaults": {
       "releaseDate": "2026-11-19",
       "barFormat": "icon",
+      "panelFormat": "both",
       "notifyMode": "daily",
       "notifyHour": 9,
       "hideAfterDays": 30
@@ -36,6 +37,13 @@
         "label": "Bar chip: icon only, sleeps count, or exact time",
         "options": ["icon", "days", "dhm"],
         "defaultValue": "icon"
+      },
+      {
+        "key": "panelFormat",
+        "type": "string",
+        "label": "Panel countdown: both readings, sleeps count only, or exact only",
+        "options": ["both", "days", "exact"],
+        "defaultValue": "both"
       },
       {
         "key": "notifyMode",

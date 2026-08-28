@@ -14,6 +14,14 @@ var OFFICIAL_URL = "https://www.rockstargames.com/VI"
 var GLYPH = "\udb80\ude97"      // nf-md-google_controller
 var LINK_GLYPH = "\udb80\udfcc" // nf-md-open_in_new
 var DATE_GLYPH = "\udb80\udced" // nf-md-calendar_month
+var COPY_GLYPH = "\udb80\udd8f" // nf-md-content_copy
+var CHECK_GLYPH = "\udb80\udd2c" // nf-md-check
+
+// Kept here so the panel, the tests and the manifest can be checked against one
+// another; a countdown that names the wrong id in its own removal command is a
+// small thing that would go unnoticed until the one moment it is read.
+var PLUGIN_ID = "io.github.xgborgeso.gta6-countdown"
+var REMOVE_COMMAND = "omarchy plugin remove " + PLUGIN_ID
 
 var MS_MINUTE = 60000
 var MS_HOUR = 3600000
@@ -355,6 +363,21 @@ function notifyPlan(nowMs, state, options) {
   }
 }
 
+// What the panel says once the date has passed. The widget has done its job and
+// the honest thing is to say so and offer the way out, rather than sit on the
+// bar counting upwards until someone wonders what it is for.
+function farewellText(cd, hideAfterDays) {
+  if (!cd || !cd.released) return ""
+  if (cd.daysSince === 0) return "Go and play. You can remove this whenever."
+  var left = hideAfterDays > 0 ? hideAfterDays - cd.daysSince : 0
+  if (hideAfterDays > 0 && left <= 0) return "Nothing left to count."
+  if (hideAfterDays > 0 && left === 1) return "Nothing left to count. Retiring tomorrow."
+  if (hideAfterDays > 0) {
+    return "Nothing left to count. Retiring in " + plural(left, "day") + "."
+  }
+  return "Nothing left to count."
+}
+
 function errorText(value) {
   return safeText(value, 160)
 }
@@ -364,9 +387,14 @@ if (typeof module !== "undefined") {
     RELEASE_DATE: RELEASE_DATE,
     PRELOAD_LEAD_DAYS: PRELOAD_LEAD_DAYS,
     OFFICIAL_URL: OFFICIAL_URL,
+    PLUGIN_ID: PLUGIN_ID,
+    REMOVE_COMMAND: REMOVE_COMMAND,
+    farewellText: farewellText,
     GLYPH: GLYPH,
     LINK_GLYPH: LINK_GLYPH,
     DATE_GLYPH: DATE_GLYPH,
+    COPY_GLYPH: COPY_GLYPH,
+    CHECK_GLYPH: CHECK_GLYPH,
     MS_DAY: MS_DAY,
     MILESTONES: MILESTONES,
     safeText: safeText,
