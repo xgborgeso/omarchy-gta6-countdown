@@ -244,6 +244,15 @@ instead of written as an escape.
 omarchy plugin remove io.github.xgborgeso.gta6-countdown
 ```
 
+That takes the widget off the bar and deletes the plugin folder. The one thing
+it leaves is the reminder stamp, which is deliberate: reinstalling on a day the
+widget has already spoken for stays quiet rather than repeating itself. Delete
+it if you would rather start clean.
+
+```bash
+rm -r "${XDG_STATE_HOME:-$HOME/.local/state}/omarchy-gta6-countdown"
+```
+
 ## License
 
 MIT. This is an unofficial fan project. Not affiliated with, endorsed by, or
