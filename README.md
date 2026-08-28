@@ -28,7 +28,8 @@ no network, and nothing to read from the system.
   out to `This is not a drill` in the final days
 - Counts to **local midnight**, because that is how Rockstar gates pre-orders,
   pre-load and launch
-- Retires itself a month after release rather than sitting on your bar forever
+- Packs up after release: a farewell line, the removal command with a copy
+  button, and a widget that takes itself off the bar a month later
 
 ## Install
 
@@ -56,6 +57,7 @@ moves again you retarget it yourself instead of waiting for a release here.
 | --- | --- | --- |
 | `releaseDate` | `2026-11-19` | Target date, `YYYY-MM-DD`, counted to local midnight. An unparseable value falls back to the shipped date and says so in the panel. |
 | `barFormat` | `icon` | `icon` shows the glyph alone. `days` shows the sleeps count. `dhm` shows exact time remaining, and ticks every minute. |
+| `panelFormat` | `both` | `both` prints the sleeps count large with the exact figure beneath it. `days` keeps only the large count. `exact` shows only the ticking figure. |
 | `notifyMode` | `daily` | `daily`, `milestones` only, or `off`. |
 | `notifyHour` | `9` | Earliest hour for the daily reminder, `0`–`23`. |
 | `hideAfterDays` | `30` | Retire the widget this many days after release. `0` keeps it forever. |
@@ -87,6 +89,21 @@ Milestone days carry their own headline instead of the plain one:
 
 Release day is announced, and then the countdown has nothing left to say and
 stops speaking.
+
+## After release
+
+A countdown that outlives its date is clutter, so this one packs up on its own.
+
+On release day the panel says `Go and play. You can remove this whenever.`
+Afterwards it counts the days until it retires — `Nothing left to count.
+Retiring in 12 days.` — and shows the removal command with a button that copies
+it to the clipboard, so you do not have to go looking for it. On day
+`hideAfterDays` the widget takes itself off the bar. Set `hideAfterDays` to `0`
+if you would rather it stayed.
+
+```bash
+omarchy plugin remove io.github.xgborgeso.gta6-countdown
+```
 
 ## Controls
 
