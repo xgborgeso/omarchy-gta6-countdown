@@ -356,8 +356,8 @@ check("the tiers escalate in the right order", () => {
   assert.ok(on(120).indexOf("It's coming") >= 0)
   assert.ok(on(60).indexOf("Check your storage") >= 0)
   assert.ok(on(20).indexOf("Getting hot!") >= 0)
-  assert.ok(on(10).indexOf("Almost there") >= 0)
-  assert.ok(on(6).indexOf("Pre-load is live") >= 0, "pre-load week says so")
+  assert.ok(on(10).indexOf("The home straight") >= 0)
+  assert.ok(on(6).indexOf("Queue the download") >= 0, "pre-load week says so")
   assert.ok(on(2).indexOf("This is not a drill") >= 0)
   assert.ok(Model.phrasesFor({ released: true, calendarDays: 0 }).indexOf("Go") >= 0)
 })
@@ -366,7 +366,7 @@ check("the pre-load tier covers exactly the pre-load week", () => {
   // The tier and the milestone have to agree, or the panel congratulates you
   // on pre-load being live a day before the notification says it opened.
   const preload = d => Model.phrasesFor({ released: false, calendarDays: d })
-    .indexOf("Pre-load is live") >= 0
+    .indexOf("Queue the download") >= 0
   assert.strictEqual(preload(Model.PRELOAD_LEAD_DAYS), true, "on the day it opens")
   assert.strictEqual(preload(Model.PRELOAD_LEAD_DAYS + 1), false, "not the day before")
   assert.strictEqual(preload(4), true)
@@ -549,8 +549,38 @@ check("the toast is headed the same way the panel is", () => {
     Model.TITLE + " is out")
 })
 
+check("no phrase can pair with a milestone headline as a near-duplicate", () => {
+  // The pre-load toast once read "Pre-load is open" over "Pre-load is live".
+  // Any phrase reachable on a milestone day must not restate its headline.
+  const significant = w => w.length > 3 && ["days", "week", "with", "your", "this"].indexOf(w) < 0
+  const words = s => new Set(s.toLowerCase().replace(/[^a-z ]/g, "").split(/\s+/).filter(significant))
+  for (const milestone of Model.MILESTONES) {
+    const head = words(milestone.text)
+    if (head.size === 0) continue
+    for (const phrase of Model.phrasesFor({ released: false, calendarDays: milestone.days })) {
+      const overlap = [...words(phrase)].filter(w => head.has(w))
+      assert.deepStrictEqual(overlap, [],
+        "'" + phrase + "' restates the " + milestone.days + "-day headline '"
+        + milestone.text + "' on '" + overlap.join(", ") + "'")
+    }
+  }
+})
+
+check("no milestone headline just repeats the body's opening words", () => {
+  // "Tomorrow" over "Tomorrow · Set an alarm anyway" read like a bug.
+  let state = { lastKey: "", phrases: null }
+  for (let d = 0; d <= 400; d++) {
+    const cd = { released: false, calendarDays: d, days: d, hours: 0, minutes: 0, daysSince: 0 }
+    const milestone = Model.milestoneFor(d)
+    if (!milestone) continue
+    const opening = Model.formatHeadline(cd)
+    assert.notStrictEqual(milestone.text, opening,
+      "milestone at " + d + " days repeats the body's opening: " + milestone.text)
+  }
+})
+
 check("the last days escalate", () => {
-  assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.headline, "Tomorrow")
+  assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.headline, "One more sleep")
   assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.urgency, "critical")
   assert.strictEqual(planAt(at(2026, 11, 16, 9, 0), { lastKey: "" }).due.urgency, "normal")
 })
@@ -591,7 +621,7 @@ check("a full run to launch fires once a day and hits every milestone once", () 
   assert.strictEqual(byDay.get("2026-11-05"), "Two weeks to go")
   assert.strictEqual(byDay.get("2026-11-12"), "Pre-load is open")
   assert.strictEqual(byDay.get("2026-11-16"), "Three days to go")
-  assert.strictEqual(byDay.get("2026-11-18"), "Tomorrow")
+  assert.strictEqual(byDay.get("2026-11-18"), "One more sleep")
   assert.strictEqual(byDay.get("2026-11-19"), "Grand Theft Auto VI is out")
 
   // Each milestone in range appears exactly once across the whole run.

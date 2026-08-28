@@ -242,7 +242,9 @@ var PHRASE_TIERS = [
     minDays: 8,
     phrases: [
       "Almost there",
-      "Two weeks out",
+      // Not "Two weeks out": this tier opens on the 14-day milestone, whose
+      // headline is "Two weeks to go".
+      "The home straight",
       "Book the time off",
       "Stock the fridge",
       "Nearly"
@@ -251,7 +253,9 @@ var PHRASE_TIERS = [
   {
     minDays: 4,
     phrases: [
-      "Pre-load is live",
+      // Not "Pre-load is live": the milestone headline on this tier's first day
+      // is "Pre-load is open", and the toast paired the two as near-duplicates.
+      "Queue the download",
       "Clear the drive, properly",
       "One week. One week.",
       "Sleep is optional soon",
@@ -354,7 +358,9 @@ var MILESTONES = [
   { days: PRELOAD_LEAD_DAYS, text: "Pre-load is open" },
   { days: 3, text: "Three days to go" },
   { days: 2, text: "Two days to go" },
-  { days: 1, text: "Tomorrow" }
+  // Not "Tomorrow": the body already opens with formatHeadline, which is the
+  // word "Tomorrow" on day one, and the toast read "Tomorrow / Tomorrow · ...".
+  { days: 1, text: "One more sleep" }
 ]
 
 function milestoneFor(calendarDays) {
