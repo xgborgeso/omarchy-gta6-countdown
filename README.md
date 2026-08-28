@@ -9,7 +9,7 @@ no network, and nothing to read from the system.
 
 <p align="center">
   <img src="preview.png" width="484"
-       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - COUNTDOWN, reading 83 days above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
+       alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 83 days above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
 ## Features

@@ -140,7 +140,7 @@ Ui.Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    // Sized so "Grand Theft Auto VI - COUNTDOWN" clears the title's elide point
+    // Sized so "Grand Theft Auto VI - Countdown" clears the title's elide point
     // with the link button already taking its share of the row.
     contentWidth: panel.fittedContentWidth(Style.space(400))
     contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(520))
@@ -179,7 +179,7 @@ Ui.Panel {
             // left to count.
             title: root.cd.released
               ? "Grand Theft Auto VI"
-              : "Grand Theft Auto VI - COUNTDOWN"
+              : "Grand Theft Auto VI - Countdown"
             meta: root.heroMeta
             foreground: root.foreground
             fontFamily: root.fontFamily
