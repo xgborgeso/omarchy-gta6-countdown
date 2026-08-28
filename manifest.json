@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.xgborgeso.gta6-countdown",
+  "name": "GTA VI Countdown",
+  "version": "1.0.0",
+  "author": "Gabriel Borges",
+  "license": "MIT",
+  "description": "A minimalist Grand Theft Auto VI countdown in the Omarchy bar: days, hours and minutes to launch, a daily reminder, and a link to the official page.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "GTA VI Countdown",
+    "description": "Time remaining until Grand Theft Auto VI, with pre-load and release dates.",
+    "category": "Desktop",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "releaseDate": "2026-11-19",
+      "barFormat": "icon",
+      "notifyMode": "daily",
+      "notifyHour": 9,
+      "hideAfterDays": 30
+    },
+    "schema": [
+      {
+        "key": "releaseDate",
+        "type": "string",
+        "label": "Release date (YYYY-MM-DD), counted to local midnight",
+        "defaultValue": "2026-11-19"
+      },
+      {
+        "key": "barFormat",
+        "type": "string",
+        "label": "Bar chip: icon only, sleeps count, or exact time",
+        "options": ["icon", "days", "dhm"],
+        "defaultValue": "icon"
+      },
+      {
+        "key": "notifyMode",
+        "type": "string",
+        "label": "Reminders: every day, milestones only, or off",
+        "options": ["daily", "milestones", "off"],
+        "defaultValue": "daily"
+      },
+      {
+        "key": "notifyHour",
+        "type": "integer",
+        "label": "Earliest hour for the daily reminder (0-23)",
+        "min": 0,
+        "max": 23,
+        "defaultValue": 9
+      },
+      {
+        "key": "hideAfterDays",
+        "type": "integer",
+        "label": "Retire the widget this many days after release (0 = never)",
+        "min": 0,
+        "max": 3650,
+        "defaultValue": 30
+      }
+    ]
+  }
+}
