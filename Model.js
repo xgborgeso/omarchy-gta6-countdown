@@ -20,6 +20,12 @@ var CHECK_GLYPH = "\udb80\udd2c" // nf-md-check
 // Kept here so the panel, the tests and the manifest can be checked against one
 // another; a countdown that names the wrong id in its own removal command is a
 // small thing that would go unnoticed until the one moment it is read.
+// The panel heading and the notification headline are the same identity and
+// have to stay the same words, so they are written once here rather than typed
+// into two files that then drift apart.
+var TITLE = "Grand Theft Auto VI"
+var TITLE_COUNTDOWN = TITLE + " - Countdown"
+
 var PLUGIN_ID = "io.github.xgborgeso.gta6-countdown"
 var REMOVE_COMMAND = "omarchy plugin remove " + PLUGIN_ID
 
@@ -158,7 +164,7 @@ function formatBar(cd, format) {
 // With the chip reduced to a glyph, the tooltip is where the reading lives, so
 // it carries the exact figure the bar used to show.
 function formatTooltip(cd, dateText) {
-  var head = "Grand Theft Auto VI"
+  var head = TITLE
   if (cd.released) return head + " \u00b7 out now \u00b7 " + formatDate(dateText)
   return head + " \u00b7 " + formatBar(cd, "dhm") + " \u00b7 " + formatDate(dateText)
 }
@@ -358,11 +364,14 @@ function milestoneFor(calendarDays) {
   return null
 }
 
+// A milestone day says its own thing; the identity is carried by the glyph and
+// by the day count that opens the body. Every other day is the plain heading,
+// worded exactly as the panel words it.
 function notifyHeadline(cd) {
-  if (cd.released) return "Grand Theft Auto VI is out"
+  if (cd.released) return TITLE + " is out"
   var milestone = milestoneFor(cd.calendarDays)
   if (milestone) return milestone.text
-  return "Grand Theft Auto VI"
+  return TITLE_COUNTDOWN
 }
 
 // The daily toast is the once-a-day display, so it carries a phrase too and
@@ -443,6 +452,8 @@ if (typeof module !== "undefined") {
     RELEASE_DATE: RELEASE_DATE,
     PRELOAD_LEAD_DAYS: PRELOAD_LEAD_DAYS,
     OFFICIAL_URL: OFFICIAL_URL,
+    TITLE: TITLE,
+    TITLE_COUNTDOWN: TITLE_COUNTDOWN,
     PLUGIN_ID: PLUGIN_ID,
     REMOVE_COMMAND: REMOVE_COMMAND,
     farewellText: farewellText,

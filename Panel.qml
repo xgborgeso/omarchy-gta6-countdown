@@ -182,9 +182,7 @@ Ui.Panel {
             width: parent.width
             // The suffix goes once the date has passed and there is nothing
             // left to count.
-            title: root.cd.released
-              ? "Grand Theft Auto VI"
-              : "Grand Theft Auto VI - Countdown"
+            title: root.cd.released ? Model.TITLE : Model.TITLE_COUNTDOWN
             meta: root.heroMeta
             foreground: root.foreground
             fontFamily: root.fontFamily

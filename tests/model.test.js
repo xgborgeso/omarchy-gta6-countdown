@@ -535,6 +535,20 @@ check("pre-load day is the one-week milestone", () => {
   assert.ok(plan.due.body.indexOf("7 days · ") === 0, plan.due.body)
 })
 
+check("the toast is headed the same way the panel is", () => {
+  // These drifted once: the panel said "Grand Theft Auto VI - Countdown" while
+  // the notification said only "Grand Theft Auto VI".
+  assert.strictEqual(Model.TITLE_COUNTDOWN, Model.TITLE + " - Countdown")
+  const plain = planAt(at(2026, 8, 28, 9, 0), { lastKey: "" })
+  assert.strictEqual(plain.due.headline, Model.TITLE_COUNTDOWN)
+
+  // A milestone day says its own thing instead, and release day says it is out.
+  assert.strictEqual(planAt(at(2026, 11, 12, 9, 0), { lastKey: "" }).due.headline,
+    "Pre-load is open")
+  assert.strictEqual(planAt(at(2026, 11, 19, 9, 0), { lastKey: "" }).due.headline,
+    Model.TITLE + " is out")
+})
+
 check("the last days escalate", () => {
   assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.headline, "Tomorrow")
   assert.strictEqual(planAt(at(2026, 11, 18, 9, 0), { lastKey: "" }).due.urgency, "critical")
@@ -571,7 +585,7 @@ check("a full run to launch fires once a day and hits every milestone once", () 
   assert.strictEqual(headlines.length, 84, "83 countdown days plus release day")
 
   const byDay = new Map(headlines)
-  assert.strictEqual(byDay.get("2026-08-28"), "Grand Theft Auto VI")
+  assert.strictEqual(byDay.get("2026-08-28"), Model.TITLE_COUNTDOWN)
   assert.strictEqual(byDay.get("2026-09-30"), "50 days to go")
   assert.strictEqual(byDay.get("2026-10-20"), "One month to go")
   assert.strictEqual(byDay.get("2026-11-05"), "Two weeks to go")

@@ -75,10 +75,12 @@ One notification per local day, on the first tick at or after `notifyHour`.
 Booting at 14:00 fires immediately; a machine left running overnight fires at
 `notifyHour` rather than at midnight.
 
-The toast reads `83 days · Under three months` — the count, then a line drawn
-from the current tier. It is drawn from a bag rather than at random, so every
-line in the tier appears once before any repeats and no two mornings running
-say the same thing.
+The toast is headed `Grand Theft Auto VI - Countdown`, the same words the panel
+uses, over a body of `83 days · Under three months` — the count, then a line
+drawn from the current tier. The line comes from a bag rather than at random, so
+every phrase in the tier appears once before any repeats and no two mornings
+running say the same thing. On a milestone day the headline is the milestone
+instead, and the day count still opens the body.
 
 State lives in `$XDG_STATE_HOME/omarchy-gta6-countdown/last-notified`: the last
 day spoken on, so restarting the shell five times before lunch does not produce

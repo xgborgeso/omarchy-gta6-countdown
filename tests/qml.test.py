@@ -185,6 +185,13 @@ class ManifestAgreementTests(unittest.TestCase):
         for key, entry in schema.items():
             self.assertEqual(entry["defaultValue"], defaults[key], key)
 
+    def test_the_panel_heading_comes_from_the_model(self):
+        # The heading and the notification headline are one identity. Typing the
+        # words into Panel.qml is how they drifted apart the first time.
+        panel = PANEL.read_text(encoding="utf-8")
+        self.assertNotIn('"Grand Theft Auto VI"', panel)
+        self.assertIn("Model.TITLE_COUNTDOWN", panel)
+
     def test_the_removal_command_names_the_real_plugin_id(self):
         # The panel invites the user to paste this. An id that drifted from the
         # manifest would hand them a command that silently removes nothing.
