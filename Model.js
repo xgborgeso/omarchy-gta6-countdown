@@ -191,7 +191,7 @@ var PHRASE_TIERS = [
       "A long con takes time",
       "Not yet, not nearly",
       "Plenty of time to save up",
-      "The horizon is a suggestion"
+      "Distant, but real"
     ]
   },
   {
@@ -201,7 +201,7 @@ var PHRASE_TIERS = [
       "Close enough to feel it",
       "The wait has a shape now",
       "Start clearing the drive",
-      "Somewhere, a map is being finished"
+      "A map is being finished"
     ]
   },
   {
@@ -219,8 +219,8 @@ var PHRASE_TIERS = [
     phrases: [
       "Getting hot!",
       "Weeks, not months",
-      "Schedule your vacation time",
-      "Tell your manager something vague",
+      "Schedule your vacation",
+      "Warn your manager",
       "Warn everyone you know"
     ]
   },
@@ -250,7 +250,7 @@ var PHRASE_TIERS = [
       "Any moment now",
       "This is not a drill",
       "Clear your calendar",
-      "Set an alarm you won't need",
+      "Set an alarm anyway",
       "Almost tomorrow"
     ]
   }
@@ -260,7 +260,7 @@ var RELEASED_PHRASES = [
   "Go",
   "Out now",
   "Stop reading the bar",
-  "It's out. Why are you still here",
+  "Why are you still here",
   "Nothing left to count"
 ]
 

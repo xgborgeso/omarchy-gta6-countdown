@@ -311,8 +311,10 @@ check("no phrase is blank, duplicated, or long enough to be clipped", () => {
   for (const phrase of all) {
     assert.strictEqual(typeof phrase, "string")
     assert.ok(phrase.trim().length > 0, "blank phrase")
-    // The hero meta line is a single row in a 360px panel.
-    assert.ok(phrase.length <= 40, "too long for the hero line: " + phrase)
+    // Measured off a real screenshot: the hero meta renders uppercase at about
+    // 9px a character, and the meta area is roughly 320px once the icon and the
+    // link button have taken their share. 26 leaves a margin; 34 overflowed.
+    assert.ok(phrase.length <= 26, "too long for the hero line: " + phrase)
     assert.strictEqual(phrase, Model.safeText(phrase), "would be altered by safeText: " + phrase)
   }
   assert.strictEqual(new Set(all).size, all.length, "a phrase is repeated")
