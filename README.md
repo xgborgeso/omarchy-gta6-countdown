@@ -8,7 +8,7 @@ page, and one reminder a day. It is pure date arithmetic — no daemon, no helpe
 no network, and nothing to read from the system.
 
 <p align="center">
-  <img src="preview.png" width="400"
+  <img src="preview.png" width="428"
        alt="The GTA VI Countdown panel open in the Omarchy bar, titled Grand Theft Auto VI - Countdown, reading 82d 09h 26m above the release date of November 19, 2026 and the pre-load date of November 12, 2026">
 </p>
 
@@ -113,27 +113,27 @@ stops speaking.
 
 An ordinary morning: the count, then a line from the tier.
 
-<img src="docs/notification-daily.png" width="378"
+<img src="docs/notification-daily.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading 83 days, A real countdown now, with a controller glyph">
 
 A month out, where the practical nudges live.
 
-<img src="docs/notification-milestone.png" width="378"
+<img src="docs/notification-milestone.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading One month to go, Weeks not months">
 
 Pre-load day, one week ahead of launch.
 
-<img src="docs/notification-preload.png" width="378"
+<img src="docs/notification-preload.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading Pre-load is open, One week One week">
 
 The last two days come through as critical, so they stay on screen.
 
-<img src="docs/notification-tomorrow.png" width="378"
+<img src="docs/notification-tomorrow.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading Tomorrow, Clear your calendar">
 
 And then it is done.
 
-<img src="docs/notification-release.png" width="378"
+<img src="docs/notification-release.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading Out now, Why are you still here">
 
 </details>
