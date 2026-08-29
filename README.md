@@ -106,10 +106,7 @@ the milestone is instead:
 Release day is announced, and then the countdown has nothing left to say and
 stops speaking.
 
-<details>
-<summary>See what they look like</summary>
-
-<br>
+### What they look like
 
 An ordinary morning: the count, then a line from the tier.
 
@@ -135,8 +132,6 @@ And then it is done.
 
 <img src="docs/notification-release.png" width="408"
      alt="A notification headed Grand Theft Auto VI - Countdown, reading Out now, Why are you still here">
-
-</details>
 
 ## After release
 
