@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "Gabriel Borges",
   "license": "MIT",
-  "description": "A minimalist Grand Theft Auto VI countdown in the Omarchy bar: days, hours and minutes to launch, a daily reminder, and a link to the official page.",
+  "description": "A minimalist Grand Theft Auto VI countdown for the Omarchy bar: one icon, a panel with the exact time remaining and both dates that matter, a daily reminder, and a link to the official page. Retires itself once the game is out.",
   "kinds": ["bar-widget"],
   "entryPoints": {
     "barWidget": "Panel.qml"
