@@ -32,7 +32,7 @@ jobs:
         # really execute.
         python: ["3.11", "3.13"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
@@ -61,7 +61,7 @@ jobs:
     name: manifest (omarchy validator)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Pick the Omarchy ref
         id: ref
@@ -105,7 +105,7 @@ jobs:
         # Quickshell types rather than a stubbed approximation of them.
         run: pacman -Syu --noconfirm --needed qt6-declarative quickshell git jq
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Syntax check
         # qmlformat exits non-zero on a parse error and needs no import
