@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # The only dependencies this repo has are the actions in check.yml. Everything
+  # else it needs — Quickshell, Qt, Omarchy itself — arrives with the host
+  # system, and the Omarchy ref is pinned deliberately in the workflow so the
+  # weekly scheduled run is what catches upstream drift.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      # Matches the conventional prefixes used everywhere else in the history.
+      prefix: chore
